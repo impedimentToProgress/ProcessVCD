@@ -10,6 +10,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import vcd.*;
 
+/**
+ VCD is a collection of utility methods for analyzing and modifying Value
+ Change Dump (VCD) files that result from hardware simulations. There are methods
+ for analyzing VCD files serially (see {@link Signal}) through the use of call
+ back functions (e.g., {@link TimeCallback}) or by loading the entire file first
+ (see {@link TimePoint} and {@link SignalHistory}).
+ 
+ @author Matthew Hicks
+ @see Signal
+ @see SignalHistory
+ @see TimePoint
+ @see TimeCallback
+*/
 public class VCD
 {
     private final String vcdFile;
@@ -22,7 +35,14 @@ public class VCD
     // Create a hashmap of signals in the vcd
     public HashMap<String, Signal> signals;
     
-    // Constructor that takes the name of a vcd file
+    /**
+     Constructor that takes the name of a vcd file to process.
+     
+     @author Matthew Hicks
+     @param pFileName the file name of the VCD file to process
+     @throws java.io.IOException if anything goes wrong while processing the
+     file
+    */
     public VCD(String pFileName)throws IOException
     {
         vcdFile = pFileName;
@@ -80,7 +100,14 @@ public class VCD
     }
     
     
-    // Print the time unit the VCD file uses
+    /**
+     Returns a string with the timescale that the timespecs are in the time.
+     
+     @author Matthew Hicks
+     @return a timescale string
+     @throws java.io.IOException if anything goes wrong while processing the
+     file
+    */
     public String getTimescale()throws IOException
     {
         seekHeader();
@@ -116,7 +143,14 @@ public class VCD
     }
 
     
-    // Print the header of the passed VCD file
+    /**
+     Prints to stdout the contents of the header section of this VCD
+     file.
+    
+     @author Matthew Hicks
+     @throws java.io.IOException if anything goes wrong while processing the
+     file
+    */
     public void printHeader()throws IOException
     {
         seekHeader();
@@ -135,6 +169,14 @@ public class VCD
     }
     
     // Print the initial values section
+    /**
+     Prints to stdout the contents of the initial values section of this VCD
+     file.
+     
+     @author Matthew Hicks
+     @throws java.io.IOException if anything goes wrong while processing the
+     file
+    */
     public void printInitialValues()throws IOException
     {
         seekInitialValues();
@@ -152,7 +194,14 @@ public class VCD
         }
     }
     
-    // Print the times and values section
+    /**
+     Prints to stdout the contents of the values section of this VCD file.
+     Caution, this could be on the order of gigabytes.
+     
+     @author Matthew Hicks
+     @throws java.io.IOException if anything goes wrong while processing the
+     file
+    */
     public void printTimesAndValues()throws IOException
     {
         seekValues();
@@ -164,8 +213,14 @@ public class VCD
         }
     }
     
-    // Search the tail of the VCD file for that last timespec
-    // Return the last timespec found
+    /**
+     Searches the tail of this VCD file for the last timespec and returns it.
+     
+     @author Matthew Hicks
+     @return a time in the simulator's timescale
+     @throws java.io.IOException if anything goes wrong while processing the
+     file
+    */
     public long getLastTime()throws IOException
     {
         if(this.lastTime != -1)
@@ -256,6 +311,17 @@ public class VCD
     }
     
     // Read the values section of the VCD and update the signals accordingly
+    /**
+     Goes through the values section of this VCD file and record all value updates
+     for each timespec.  Populates the list of signals in {@link vcd.VCD#signals}
+     and updates the signals while processing this VCD file's values section.
+     Calls the {@link vcd.TimeCallback#timeUpdate} of the object last passed to {@link vcd.VCD#setTimeUpdateCallback} for every timespec update or skips
+     the callback if the callback object was never set.
+     
+     @author Matthew Hicks
+     @throws java.io.IOException if anything goes wrong while processing the
+     file
+     */
     public void readValuesFromVCD()throws IOException
     {
         createSymbolTable();
@@ -294,9 +360,15 @@ public class VCD
         }
     }
     
-    // Resets the performance counters of all signals
-    // Useful as part of a callback function used when processing the value section
-    // of a VCD file
+    //
+    
+    /**
+     Resets the performance counters of all signals.  Useful as part of a
+     callback function used when processing the value section
+     of this VCD file.
+     
+     @author Matthew Hicks
+    */
     public void resetPerformanceCounters()
     {
         for(Signal sig : signals.values())
@@ -305,13 +377,25 @@ public class VCD
         }
     }
     
-    // Set the function to call every time update
+    /**
+     Set the function to call every timespec update when running {@link vcd.VCD#readValuesFromVCD}.
+     
+     @author Matthew Hicks
+     @param pTCB an object that implements the {@link TimeCallback} interface
+    */
     public void setTimeUpdateCallback(TimeCallback pTCB)
     {
         timeUpdateCallback = pTCB;
     }
     
-    // Go through the values section, record all updates for each time unit
+    /**
+     Go through the values section of this VCD file and record all value updates
+     for each timespec.  Populates the list of time points in {@link vcd.VCD#timeSeries}.
+     
+     @author Matthew Hicks
+     @throws java.io.IOException if anything goes wrong while processing the
+     file
+    */
     public void collectTimes()throws IOException
     {
         if(timeSeries != null)
@@ -349,11 +433,21 @@ public class VCD
         }
     }
     
-    // Given a signal name and tye of signal,
-    // this method scans the VCD header for the symbol used in the
-    // value dump portion of the file
-    // This method returns the short name or null if not found
-    public String signalNameToSymbol(String pSignalName, String pSignalType)throws IOException
+    /**
+     Given a signal name and type of signal, this method scans the header of
+     this VCD file for the matching symbol (used in the values section). This
+     method returns the symbol if found or null if not found. This method
+     is not meant to be used frequently as it scans the file each request.
+
+     @author Matthew Hicks
+     @param pSignalName the name of the signal to find the symbol for
+     @param pSignalType the type (wire or reg) of the signal to find the symbol
+     for
+     @return the symbol as a string or null if the signal cannot be found
+     @throws java.io.IOException if anything goes wrong while processing the
+     file
+    */
+    public String signalNameToSymbol(String pSignalName, SignalType pSignalType)throws IOException
     {
         seekHeader();
         

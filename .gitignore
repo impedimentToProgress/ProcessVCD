@@ -1,4 +1,8 @@
 *.class
+*.html
+*.js
+*.css
+package-list
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/

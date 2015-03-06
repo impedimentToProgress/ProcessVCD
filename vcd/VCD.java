@@ -556,7 +556,7 @@ public class VCD
     // timespec
     private static boolean isTimespec(String pLine)
     {
-        return pLine.charAt(0) == '#';
+        return pLine.length() > 0 ? pLine.charAt(0) == '#' : false;
     }
     
     // Takes a string and returns true if that string can be parsed as a

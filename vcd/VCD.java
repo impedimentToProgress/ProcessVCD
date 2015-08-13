@@ -83,7 +83,7 @@ public class VCD
     
     private void seekValues()throws IOException
     {
-        seekHeader();
+        // Go past the header and the init vals section
         seekInitialValues();
         
         String line;
@@ -232,12 +232,16 @@ public class VCD
         long totalChars = file.skip(Long.MAX_VALUE);
         
         // Binary search for a tail of the file with a time in it
-        for(long tail = 1000; tail < totalChars; tail <<= 1)
+        for(long tail = 1000; ; tail <<= 1)
         {
             // Reset the stream and try a new skip distance
             seekValues();
-            file.skip(totalChars - tail);
             
+            if(tail > totalChars)
+                file.skip(0);
+            else
+                file.skip(totalChars - tail);
+
             // Search the tail for a time
             String line;
             String lastTime = null;
@@ -254,6 +258,9 @@ public class VCD
             {
                 return (this.lastTime = Long.parseLong(lastTime));
             }
+            
+            if(tail > totalChars)
+                break;
         }
         
         throw new IOException("ERROR: No times found in the VCD file");

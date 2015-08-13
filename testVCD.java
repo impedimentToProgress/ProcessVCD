@@ -85,6 +85,12 @@ public class testVCD implements TimeCallback
     
     public static void main(String args[])throws IOException
     {
+        if(args.length != 1)
+        {
+            System.err.println("Usage: java testVCD file.vcd");
+            System.exit(1);
+        }
+        
         vcd = new VCD(args[0]);
         maxTime = vcd.getLastTime();
         vcd.setTimeUpdateCallback(new testVCD());

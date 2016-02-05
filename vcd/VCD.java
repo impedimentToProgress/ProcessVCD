@@ -25,18 +25,27 @@ import vcd.*;
 */
 public class VCD
 {
+    // Set by constructors
     private final String vcdFile;
+    private final boolean SAVE_ALL_VALUES;
+
+    // Set by caller to public method
+    private TimeCallback timeUpdateCallback = null;
+
+    // For internal tracking
     private BufferedReader file = null;
     private TimePoint currentTimePoint = null;
     private long lastTime = -1;
-    private TimeCallback timeUpdateCallback = null;
-    public ArrayList<TimePoint> timeSeries;
 
+    // List of update times
+    public ArrayList<TimePoint> timeSeries;
+    
     // Create a hashmap of signals in the vcd
     public HashMap<String, Signal> signals;
     
     /**
      Constructor that takes the name of a vcd file to process.
+     Uses a stateless signal {@link Signal}.
      
      @author Matthew Hicks
      @param pFileName the file name of the VCD file to process
@@ -46,8 +55,27 @@ public class VCD
     public VCD(String pFileName)throws IOException
     {
         vcdFile = pFileName;
+	SAVE_ALL_VALUES = false;
     }
-    
+
+    /**
+     Constructor that takes the name of a vcd file to process and a
+     boolean that determines whether to use a stateless signal {@link Signal}
+     or a signal that has a complete history {@link SignalHistory}.
+     
+     @author Matthew Hicks
+     @param pFileName the file name of the VCD file to process
+     @param pCompleteHistory whether to save all historcial values of
+     a signal or the current value
+     @throws java.io.IOException if anything goes wrong while
+     processing the file
+    */
+    public VCD(String pFileName, boolean pCompleteHistory)throws IOException
+    {
+        vcdFile = pFileName;
+	SAVE_ALL_VALUES = pCompleteHistory;
+    }
+
     // Functions that move to given sections in the VCD file
     private void seekHeader()throws IOException
     {
@@ -310,19 +338,22 @@ public class VCD
                     SignalType st = (parts[1].charAt(0) == 'r') ? SignalType.reg : SignalType.wire;
                     String slice = parts.length == 7 ? parts[5] : "";
                     int bits = Integer.parseInt(parts[2]);
-                    
-                    signals.put(parts[3], new Signal(currentPath + "/", parts[4] + slice, st, bits, parts[3]));
+
+		    if(SAVE_ALL_VALUES)
+			signals.put(parts[3], new SignalHistory(currentPath + "/", parts[4] + slice, st, bits, parts[3]));
+		    else
+			signals.put(parts[3], new Signal(currentPath + "/", parts[4] + slice, st, bits, parts[3]));
                 }
             }
         }
     }
     
-    // Read the values section of the VCD and update the signals accordingly
     /**
-     Goes through the values section of this VCD file and record all value updates
+     Go through the values section of the VCD file and record all value updates
      for each timespec.  Populates the list of signals in {@link vcd.VCD#signals}
-     and updates the signals while processing this VCD file's values section.
-     Calls the {@link vcd.TimeCallback#timeUpdate} of the object last passed to {@link vcd.VCD#setTimeUpdateCallback} for every timespec update or skips
+     and updates the signals while processing the VCD file's values section.
+     Calls the {@link vcd.TimeCallback#timeUpdate} of the object last passed to
+     {@link vcd.VCD#setTimeUpdateCallback} for every timespec update or skips
      the callback if the callback object was never set.
      
      @author Matthew Hicks
@@ -366,8 +397,6 @@ public class VCD
             }
         }
     }
-    
-    //
     
     /**
      Resets the performance counters of all signals.  Useful as part of a

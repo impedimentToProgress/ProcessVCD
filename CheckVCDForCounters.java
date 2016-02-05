@@ -21,7 +21,7 @@ public class CheckVCDForCounters
             System.exit(1);
         }
         
-        vcd = new VCD(args[0]);
+        vcd = new VCD(args[0], true);
         vcd.readValuesFromVCD();
         System.out.println("Signals: " + vcd.signals.size());
 
@@ -61,10 +61,10 @@ public class CheckVCDForCounters
 	suspects = new ArrayList<SignalHistory>(vcd.signals.size() / 10);
 
 	// Look for value repeats on every signal
-	for(SignalHistory sig: vcd.signals.values())
+	for(Signal sig: vcd.signals.values())
 	{
 	    //System.out.println(sig.getName());
-	    ArrayList<ValueTimeTuple> vtts = sig.getValues();
+	    ArrayList<ValueTimeTuple> vtts = ((SignalHistory)sig).getValues();
 
 	    // Sort the list to make finding repeat values faster
 	    Collections.sort(vtts, (ValueTimeTuple vtt1, ValueTimeTuple vtt2) -> vtt1.getValue().compareTo(vtt2.getValue()));
@@ -87,7 +87,7 @@ public class CheckVCDForCounters
 
 	    if(!foundDupe)
 	    {
-		suspects.add(sig);
+		suspects.add((SignalHistory)sig);
 	    }
 	}
     }

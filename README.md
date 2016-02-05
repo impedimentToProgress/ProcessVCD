@@ -8,12 +8,12 @@ CheckVCDForCounters.java is an example program that uses SignalHistory objects t
 To build the javadoc: javadoc -public vcd
 
 To compile:
-    javac testVCD.java
-    javac CheckVCDForCounters.java
+* javac testVCD.java
+* javac CheckVCDForCounters.java
     
 To run:
-    java testVCD vcdFile.vcd[.gz]
-    java CheckVCDForCounters vcdFile.vcd[.gz]
+* java testVCD vcdFile.vcd[.gz]
+* java CheckVCDForCounters vcdFile.vcd[.gz]
 
 To make a cool video of the switching activity of the design (requires gnuplot and ffmpeg): sh makeHists.sh
 

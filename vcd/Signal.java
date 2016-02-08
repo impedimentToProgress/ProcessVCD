@@ -152,6 +152,17 @@ public class Signal
     {
         return width;
     }
+
+    /**
+     Returns the number of unique values for this signal.
+     @author Matthew Hicks
+     @return Number of unique values that this signal can take on.
+    */
+    public long maxValues()
+    {
+        return 1L << getWidth();
+    }
+
     
     /**
      Returns the type of this signal
